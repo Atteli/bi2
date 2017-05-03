@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 
 
 __GC = 0
@@ -7,6 +8,24 @@ __GU = 0
 __MIN_LOOP = 0
 __M = []
 __SEQ = ''
+__PAIRS = []
+
+def fastaread(fpath):
+    f = open(fpath, 'r')
+    headers = []
+    seqs = []
+    temp = ''
+    for line in f:
+        if line:
+            if line[0] == '>':
+                headers.append(line)
+                if temp:
+                    seqs.append(temp)
+                    temp = ''
+            else:
+                temp += line
+    seqs.append(temp)
+    return headers, seqs
 
 def deltafunc(i, j):
     test = ord(__SEQ[i]) + ord(__SEQ[j])
@@ -30,7 +49,8 @@ def nussinovtraceback(i, j):
         elif __M[i,j] == __M[i, j-1]:
             nussinovtraceback(i, j - 1)
         elif __M[i,j] == __M[i + 1, j - 1] + deltafunc(i, j):
-            print (i + 1, __SEQ[i], __SEQ[j], j + 1)
+            #print (i + 1, __SEQ[i], __SEQ[j], j + 1)
+            __PAIRS.append([i, j])
             nussinovtraceback(i + 1, j - 1)
         else:
             for k in range (i + 1, j - 1):
@@ -41,17 +61,53 @@ def nussinovtraceback(i, j):
 
     return 0
 
-if __name__ == '__main__':
-    seq1 = 'GUUCAUAAGAGGUCAACAGCAACGGGUGUU'
-    seq2 = 'GGGAAACCU'
+def resultformat(mode='bpseq'):
+    if __SEQ and __PAIRS:
+        temp = list(__SEQ)
+        for pair in __PAIRS:
+            if mode == 'bpseq':
+                print(pair[0] + 1, __SEQ[pair[0]], __SEQ[pair[1]], pair[1] + 1)
+            temp[pair[0]] = '('
+            temp[pair[1]] = ')'
+        if mode == 'dot-bracket':
+            for i in range(len(temp)):
+                if not (temp[i] == '(' or temp[i] == ')'):
+                    temp[i] = '.'
+            print(''.join(temp))
 
-    __SEQ = seq1
-    __GC = 1
-    __AU = 10
-    __GU = 0
-    __MIN_LOOP = 5
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Nussinov algorithm")
+    parser.add_argument("--fasta", help="Query sequence fasta")
+    parser.add_argument("--min_loop", nargs='?', help="Minimum loop length, default: 3", type=int, default=3)
+    parser.add_argument("--GC", nargs='?', help="Score for GC / CG base pair, default: 0", type=int, default=0)
+    parser.add_argument("--AU", nargs='?', help="Score for AU / UA base pair, default: 0", type=int, default=0)
+    parser.add_argument("--GU", nargs='?', help="Score for GU / UG base pair, default: 0", type=int, default=0)
+
+    args = parser.parse_args()
+
+    headers, seqs = fastaread(args.fasta)
+
+    #print(headers, seqs)
+
+    __SEQ = seqs[0]
+    __GC = args.GC
+    __AU = args.AU
+    __GU = args.GU
+    __MIN_LOOP = args.min_loop
+
+    print('\nSequence:', __SEQ)
+    print('\n')
 
     __M = nussinovfill()
-    print(__M)
     nussinovtraceback(0, len(__SEQ) - 1)
+
+    print('bpseq:\n')
+    resultformat(mode='bpseq')
+
+    print('\ndot-bracket:\n')
+    resultformat(mode='dot-bracket')
+
+    print('\n')
     print('Score:', __M[0, len(__M[0]) - 1])
+
