@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import sys
 
 
 __GC = 0
@@ -85,6 +86,11 @@ if __name__ == '__main__':
     parser.add_argument("--GU", nargs='?', help="Score for GU / UG base pair, default: 0", type=int, default=0)
 
     args = parser.parse_args()
+    print(args)
+    if args.fasta is None:
+        print('Usage: python3 nussinov.py --fasta {fastafile} [--min_loop {int}] [--GC {int}] [--AU {int}] [--GU {int}]')
+        sys.exit('Error! No FASTA file specified. Exiting...')
+
 
     headers, seqs = fastaread(args.fasta)
 
