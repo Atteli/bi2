@@ -1,3 +1,7 @@
+'''
+Alexandru Mautner
+BI2 SS17
+'''
 import numpy as np
 import argparse
 import sys
@@ -7,11 +11,15 @@ __GC = 0
 __AU = 0
 __GU = 0
 __MIN_LOOP = 0
-__M = []
+__M = np.array([])
 __SEQ = ''
 __PAIRS = []
 
 def fastaread(fpath):
+    '''
+    :param fpath: File pach
+    :return: list of headers / list of sequences of FASTA-file
+    '''
     f = open(fpath, 'r')
     headers = []
     seqs = []
@@ -29,10 +37,18 @@ def fastaread(fpath):
     return headers, seqs
 
 def deltafunc(i, j):
+    '''
+    :param i: index of sequence
+    :param j: index of sequence
+    :return: score of base pairs
+    '''
     test = ord(__SEQ[i]) + ord(__SEQ[j])
     return __GC if test == 138 else __AU if test == 150 else __GU if test == 156 else 0
 
 def nussinovfill():
+    '''
+    :return: nussinov matrix
+    '''
     m = np.zeros((len(__SEQ), len(__SEQ)))
     for l in range(1, len(__SEQ)):
         for j in range(l, len(__SEQ)):
@@ -44,6 +60,11 @@ def nussinovfill():
     return m
 
 def nussinovtraceback(i, j):
+    '''
+    :param i: index
+    :param j: index
+    :return: base pair list
+    '''
     if i < j:
         if __M[i, j] == __M[i + 1, j]:
             nussinovtraceback(i + 1, j)
@@ -60,7 +81,12 @@ def nussinovtraceback(i, j):
                     nussinovtraceback(k + 1, j)
                     break
 
-def resultformat(mode='bpseq', verbose=False):
+def resultformat(mode='bpseq', verbose=True):
+    '''
+    :param mode: bpseq or dot-bracket format
+    :param verbose: verbose
+    :return: list of base pairs
+    '''
     if __SEQ and __PAIRS:
         temp = list(__SEQ)
         for pair in __PAIRS:
@@ -78,7 +104,11 @@ def resultformat(mode='bpseq', verbose=False):
             return ''.join(temp)
         return __PAIRS
 
-def printresults(verbose=False):
+def printresults(verbose=True):
+    '''
+    :param verbose: verbose
+    :return: bpseq or dot-bracket format as a list
+    '''
     if verbose:
         print('\nSequence:', __SEQ)
         print('\n')
@@ -97,6 +127,10 @@ def printresults(verbose=False):
     return bpseq, db
 
 def onconsole():
+    '''
+    start this in __main__ if this program should run on the terminal
+    :return: rna fold of sequence provided by a fasta-file
+    '''
     parser = argparse.ArgumentParser(description="Nussinov algorithm")
     parser.add_argument("--fasta", help="Query sequence fasta")
     parser.add_argument("--min_loop", nargs='?', help="Minimum loop length, default: 3", type=int, default=3)
@@ -105,7 +139,7 @@ def onconsole():
     parser.add_argument("--GU", nargs='?', help="Score for GU / UG base pair, default: 0", type=int, default=0)
 
     args = parser.parse_args()
-    print(args)
+    #print(args)
     if args.fasta is None:
         print(
             'Usage: python3 nussinov.py --fasta {fastafile} [--min_loop {int}] [--GC {int}] [--AU {int}] [--GU {int}]')
@@ -126,6 +160,14 @@ def onconsole():
     __MIN_LOOP = args.min_loop
 
 def onide(gc, au, gu, min_loop):
+    '''
+    start this in __main__ if this program should run in an IDE, such as PyCharm
+    :param gc: score for G-C or C-G base pair
+    :param au: score for A-U or U-A base pair
+    :param gu: score for G-U or U-G base pair
+    :param min_loop: nimimum loop size of folded structure
+    :return: rna fold of sequence provided by a fasta-file
+    '''
     headers, seqs = fastaread('E:/GitProjects/bi2/assignment1/supplement/at.fasta')
 
     global __SEQ
@@ -157,7 +199,14 @@ def resetglobals():
     __SEQ = ''
     __PAIRS = []
 
-def bruteforce(r):
+def __bruteforce(r):
+    '''
+    dont use at all, just for determining parameter configs. min_loop needs to be adjusted by hand.
+    also, before running this, set verbose on the resut-printing-functions to false.
+    :param r: test configurations for 0-r for every parameter (gc, au, gu)
+    :return: may stop if a given configuration matches a configuration which arose from bruteforce parameter search.
+    else just print out all dot-bracket solutions for all parameters in 0-r range.
+    '''
     global __M
     cmpseq = '(((((((..((((.......)))).(((((.......))))).....((.((.......)).))))))))).'
     tmp = 0
@@ -167,13 +216,13 @@ def bruteforce(r):
     for gc in range(r):
         for au in range(r):
             for gu in range(r):
-                for min_loop in range(5,10):
+                for min_loop in range(2,3):
                     resetglobals()
                     onide(gc, au, gu, min_loop)
                     __M = nussinovfill()
                     nussinovtraceback(0, len(__SEQ) - 1)
                     bpseq, db = printresults()
-                    print(db, tmp / (r*r*r), __GC, __AU, __GU, __MIN_LOOP, __M[0, len(__M[0])-1])
+                    print(db, tmp, __GC, __AU, __GU, __MIN_LOOP, __M[0, len(__M[0])-1])
                     if __M[0, len(__M[0])-1] > tmpscr:
                         tmpdb = db
                         tmpscr = __M[0, len(__M[0])-1]
@@ -186,16 +235,16 @@ def bruteforce(r):
     print(tmpdb, tmpscr, tmpargs)
 
 if __name__ == '__main__':
-    '''
-    #onconsole()
-    onide()
+
+    onconsole()
+    #onide(gc=12, au=8, gu=2, min_loop=5)
 
     __M = nussinovfill()
     nussinovtraceback(0, len(__SEQ) - 1)
 
     bpseq, db = printresults()
-    '''
-    bruteforce(10)
+
+    #bruteforce(16)
 
 
 
