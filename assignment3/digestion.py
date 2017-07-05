@@ -1,53 +1,27 @@
 import argparse
 import sys
-import pandas as pd
+import math
 
-import assignment3.enzymelib as ezlib
-
-def fastaread(fpath):
-    '''
-    :param fpath: File pach
-    :return: list of headers / list of sequences of FASTA-file
-    '''
-    f = open(fpath, 'r')
-    headers = []
-    seqs = []
-    temp = ''
-    for line in f:
-        if line:
-            if line[0] == '>':
-                headers.append(line)
-                if temp:
-                    seqs.append(temp)
-                    temp = ''
-            else:
-                temp += line.strip()
-    seqs.append(temp.upper())
-    return headers, seqs
-
-def get_masses(masses_sheet, matr):
-    table = pd.read_csv(masses_sheet, sep=',')
-    table = table.set_index("code")
-    monoisotopic_masses = []
-    average_masses = []
-    for peptide_piece in matr:
-        mono = 0
-        avg = 0
-        for c in peptide_piece:
-            mono += table.loc[c].monoisotopic
-            avg += table.loc[c].average
-        monoisotopic_masses.append(mono)
-        average_masses.append(avg)
-    return monoisotopic_masses, average_masses
+import enzymelib as ezlib
+import fastareader as fr
+import peptidemasshandler as ph
 
 def digest(fasta, enz):
     enzyme_instance = ezlib.Enzyme(enz)
     return enzyme_instance.cleave(fasta)
 
+def make_tuples(list1, list2, list3):
+    print(list1, list2, list3)
+    assert(len(list1) == len(list2) == len(list3))
+    tpls = []
+    for index, elem in enumerate(list1):
+        tpls.append((list1[index], list2[index], list3[index]))
+    return tpls
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="In Silico Digestor")
     parser.add_argument("--fasta", help="FASTA-Sequence")
-    parser.add_argument("--enzyme", nargs='?', help="Enzyme for sequence digestion", type=str, default='trp')
+    parser.add_argument("--enzyme", nargs='?', help="Enzyme for sequence digestion", type=str, default='trypsin')
     parser.add_argument("--masses", nargs='?', help="Masses of amino acids", type=str, default='./aa_masses.csv')
 
     args = parser.parse_args()
@@ -60,13 +34,22 @@ if __name__ == "__main__":
     enz = args.enzyme
     ms = args.masses
 
-    headers, seqs = fastaread(fasta)
+    headers, seqs = fr.fastaread(fasta)
 
-    scatter = digest(seqs[0], enz)
-    mono_masses, avg_masses = get_masses(ms, scatter)
+    for i,s in enumerate(seqs):
+        print("processing seq ", i+1 , " of ", len(seqs), ", of file ", fasta, "\n")
+        scatter = digest(seqs[0], enz)
+        mono_masses, avg_masses, total_mass_mono, total_mass_avg = ph.get_masses(ms, scatter, 'M')
+        print("performing " + enz + " digestion of seq " + str(headers[i])[1:])
+        print("total peptide mass (monoisotopic):\n", total_mass_mono)
+        print("total peptide mass (average):\n", total_mass_avg)
+        print("peptide pieces after digestion:\n", scatter)
+        print("monoisotopic masses of pieces:\n", mono_masses)
+        print("average masses of pieces:\n", avg_masses)
 
-    print(scatter)
-    print(mono_masses)
-    print(avg_masses)
+
+        print("sorted scatter list: (piece, monoisotopic_mass, avg_mass), sorted by piece length:")
+        lst = make_tuples(scatter, mono_masses, avg_masses)
+        print("", sorted(lst, key=lambda lst: len(lst[0])))
 
 

@@ -21,3 +21,16 @@ Tyrosine,Y,163.06333,163.1760
 Valine,V,99.06841,99.1326
 Selenocysteine,U,150.953636,150.0388
 Pyrrolysine,O,237.147727,237.3018
+Alkylation,ALK,14.01564,14.02688
+Carbamylation,CAY,43.00581,43.02502
+Carboxymethyl cysteine,Cys_CM,161.01466,161.1755
+Carboxyamidomethyl cysteine,Cys_CAM,160.03065,160.1908
+Pyridyl-ethyl cysteine,Cys_PE,208.067039,208.284
+Propionamide cysteine,Cys_PAM,174.04631,174.2176
+Methionine sulfoxide,MSO,147.0354,147.1920
+Oxydized tryptophan,TPO,202.0742,202.2126
+Homoserine Lactone,HSL,100.03985,100.09714
+Hydrogen,HY,1.00783,1.00794
+H+,HYP,1.00728,1.00739
+Oxygen,OXY,15.9949146,15.9994
+Water,H2O,18.01056,18.01524
