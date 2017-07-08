@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="In Silico Digestor")
     parser.add_argument("--fasta", help="FASTA-Sequence")
     parser.add_argument("--enzyme", nargs='?', help="Enzyme for sequence digestion", type=str, default='trypsin')
-    parser.add_argument("--masses", nargs='?', help="Masses of amino acids", type=str, default='./aa_masses.csv')
+    parser.add_argument("--masses", nargs='?', help="Masses of amino acids", type=str, default='./aa_masses_extended.csv')
 
     args = parser.parse_args()
 

@@ -22,12 +22,12 @@ def calc_y_ion_masses(ymasses):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MS experiment")
     parser.add_argument("--fasta", help="FASTA-Sequence")
-    parser.add_argument("--masses", nargs='?', help="Masses of amino acids", type=str, default='./aa_masses.csv')
+    parser.add_argument("--masses", nargs='?', help="Masses of amino acids", type=str, default='./aa_masses_extended.csv')
 
     args = parser.parse_args()
 
     if args.fasta is None:
-        print('Usage: python3 digestion.py --fasta {fastafile} [--enzyme {str}]')
+        print('Usage: python3 massspectrometry.py --fasta {fastafile}')
         sys.exit('Error! No FASTA file specified. Exiting...')
 
     fasta = args.fasta
